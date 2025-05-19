@@ -1,6 +1,7 @@
 from .models import *
 from .serializers import (ReviewSerializer, CertificateSerializer, OptionsSerializer, ExamQuestionSerializer,
-                          AssignmentSerializer, LessonSerializer, CoursesSerializer, CategorySerializer,
+                          AssignmentListSerializer,AssignmentDetailSerializer, LessonSerializer,
+                          CoursesListSerializer,CoursesDetailSerializer, CategorySerializer,
                           NetworksSerializer, UserProfileSerializer, )
 from rest_framework import viewsets, generics
 
@@ -18,15 +19,24 @@ class NetworkViewSet(viewsets.ModelViewSet):
 
 class CoursesAPIView(generics.ListAPIView):
     queryset = Courses.objects.all()
-    serializer_class = CoursesSerializer
+    serializer_class = CoursesListSerializer
+
+class CoursesDetailAPIView(generics.RetrieveAPIView):
+    queryset = Courses.objects.all()
+    serializer_class = CoursesDetailSerializer
+
 
 class LessonViewSet(viewsets.ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
 
-class AssignmentViewSet(viewsets.ModelViewSet):
+class AssignmentAPIView(generics.ListAPIView):
     queryset = Assignment.objects.all()
-    serializer_class = AssignmentSerializer
+    serializer_class = AssignmentListSerializer
+
+class AssignmentDetailAPIView(generics.RetrieveAPIView):
+    queryset = Assignment.objects.all()
+    serializer_class = AssignmentDetailSerializer
 
 class ExamQuestionViewSet(viewsets.ModelViewSet):
     queryset = ExamQuestion.objects.all()

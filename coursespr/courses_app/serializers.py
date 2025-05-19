@@ -4,7 +4,7 @@ from rest_framework import serializers
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = ['first_name', 'last_name']
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,38 +16,61 @@ class NetworksSerializer(serializers.ModelSerializer):
         model = Networks
         fields = '__all__'
 
-class CoursesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Courses
-        fields = '__all__'
-
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = '__all__'
 
-class AssignmentSerializer(serializers.ModelSerializer):
+class CoursesListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Assignment
+        model = Courses
+        fields = ['id', 'course_image','course_name', 'price', 'created_by',]
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
         fields = '__all__'
 
-class ExamQuestionSerializer(serializers.ModelSerializer):
+class CoursesDetailSerializer(serializers.ModelSerializer):
+    lessons = LessonSerializer(read_only=True, many=True)
+    reviews = ReviewSerializer(read_only=True, many=True)
+    created_by = UserProfileSerializer()
+    # category = CategorySerializer()
+    # category = serializers.SlugRelatedField(read_only=True, slug_field='category_name')
     class Meta:
-        model = ExamQuestion
-        fields = '__all__'
+        model = Courses
+        fields = ['id', 'course_image','course_name', 'price', 'created_by',
+                  'description','created_at', 'level', 'category', 'lessons', 'reviews']
+
 
 class OptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Options
-        fields = '__all__'
+        fields = ['option_name', 'check_var']
+
+class ExamQuestionSerializer(serializers.ModelSerializer):
+    options = OptionsSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = ExamQuestion
+        fields = ['question_name', 'score', 'options']
+
+class AssignmentListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment
+        fields = ['id', 'title']
+
+
+class AssignmentDetailSerializer(serializers.ModelSerializer):
+    exam_questions = ExamQuestionSerializer(read_only=True, many=True)
+    class Meta:
+        model = Assignment
+        fields = [ 'title', 'exam_questions', ]
+
 
 class CertificateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Certificate
         fields = '__all__'
 
-class ReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        fields = '__all__'
 
