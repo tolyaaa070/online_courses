@@ -1,9 +1,15 @@
+from rest_framework.filters import SearchFilter, OrderingFilter
+
 from .models import *
 from .serializers import (ReviewSerializer, CertificateSerializer, OptionsSerializer, ExamQuestionSerializer,
                           AssignmentListSerializer,AssignmentDetailSerializer, LessonSerializer,
                           CoursesListSerializer,CoursesDetailSerializer, CategorySerializer,
                           NetworksSerializer, UserProfileSerializer, )
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from .permission import CheckRole, CheckRoleReview
+
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
@@ -20,6 +26,12 @@ class NetworkViewSet(viewsets.ModelViewSet):
 class CoursesAPIView(generics.ListAPIView):
     queryset = Courses.objects.all()
     serializer_class = CoursesListSerializer
+    filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
+    filterset_fields = ['level']
+    search_fields = ['course_name']
+    ordering_fields = ['price']
+
+
 
 class CoursesDetailAPIView(generics.RetrieveAPIView):
     queryset = Courses.objects.all()
@@ -33,10 +45,16 @@ class LessonViewSet(viewsets.ModelViewSet):
 class AssignmentAPIView(generics.ListAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentListSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['title']
+    search_fields = ['title']
+    ordering_fields = ['title']
 
-class AssignmentDetailAPIView(generics.RetrieveAPIView):
+
+class AssignmentDetailAPIView(generics.RetrieveUpdateAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentDetailSerializer
+    permission_classes = [CheckRole]
 
 class ExamQuestionViewSet(viewsets.ModelViewSet):
     queryset = ExamQuestion.objects.all()
@@ -50,9 +68,10 @@ class CertificateViewSet(viewsets.ModelViewSet):
     queryset = Certificate.objects.all()
     serializer_class = CertificateSerializer
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewAPIView(generics.CreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, CheckRoleReview]
 
 
 
