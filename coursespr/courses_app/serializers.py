@@ -1,5 +1,43 @@
 from .models import *
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ('username', 'email', 'password', 'first_name', 'last_name',
+                   'role')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = UserProfile.objects.create_user(**validated_data)
+        return user
+
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Неверные учетные данные")
+
+    def to_representation(self, instance):
+        refresh = RefreshToken.for_user(instance)
+        return {
+            'user': {
+                'username': instance.username,
+                'email': instance.email,
+            },
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,12 +57,14 @@ class NetworksSerializer(serializers.ModelSerializer):
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = '__all__'
+        fields = ['id', 'title', 'content', 'video']
 
 class CoursesListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Courses
         fields = ['id', 'course_image','course_name', 'price', 'created_by',]
+
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
@@ -35,8 +75,9 @@ class CoursesDetailSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(read_only=True, many=True)
     reviews = ReviewSerializer(read_only=True, many=True)
     created_by = UserProfileSerializer()
+    created_at = serializers.DateTimeField(format('%d-%m-%y %H:%M'))
     # category = CategorySerializer()
-    # category = serializers.SlugRelatedField(read_only=True, slug_field='category_name')
+    category = serializers.SlugRelatedField(many=True,read_only=True, slug_field='category_name')
     class Meta:
         model = Courses
         fields = ['id', 'course_image','course_name', 'price', 'created_by',
